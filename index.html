@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Report: GLOF Susceptibility Model</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F7F4;
+            color: #4B4B4B;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #10B981;
+            border-bottom-color: #10B981;
+        }
+        .factor-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .factor-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .factor-card.active {
+            border-color: #10B981;
+            background-color: #ECFDF5;
+        }
+        .flowchart-step {
+            transition: all 0.3s ease;
+            border-left-width: 4px;
+        }
+        .flowchart-step:hover {
+            background-color: #D1FAE5;
+            border-color: #059669;
+        }
+        .flowchart-arrow {
+            color: #9CA3AF;
+        }
+        .citation-text {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9rem;
+            color: #52525B;
+            line-height: 1.5;
+        }
+        .console-output {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+        }
+        .math-equation {
+            background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+            border-left: 4px solid #10B981;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .math-label {
+            display: inline-block;
+            background: #10B981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        mjx-container {
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-gray-800">GLOF Hazard Assessment</h1>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#introduction" class="nav-link">Introduction</a>
+                <a href="#basis" class="nav-link">Methodology</a>
+                <a href="#factors" class="nav-link">Input Factors</a>
+                <a href="#workflow" class="nav-link">Workflow</a>
+                <a href="#demo" class="nav-link">Console Demo</a>
+                <a href="#about" class="nav-link">Author</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden text-gray-700 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
+            <a href="#introduction" class="block py-2 nav-link">Introduction</a>
+            <a href="#basis" class="block py-2 nav-link">Methodology</a>
+            <a href="#factors" class="block py-2 nav-link">Input Factors</a>
+            <a href="#workflow" class="block py-2 nav-link">Workflow</a>
+            <a href="#demo" class="block py-2 nav-link">Console Demo</a>
+            <a href="#about" class="block py-2 nav-link">Author</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+
+        <section id="introduction" class="mb-24 scroll-mt-20">
+            <h2 class="text-4xl font-bold text-center mb-4 text-gray-800">Automated GLOF Susceptibility Model</h2>
+            <p class="text-lg text-center max-w-3xl mx-auto text-gray-600">
+                This report details a Python-based geospatial workflow for estimating Glacial Lake Outburst Flood (GLOF) susceptibility. The model utilizes a <strong>Multi-Criteria Decision Analysis (MCDA)</strong> approach based on the <strong>Analytical Hierarchy Process (AHP)</strong>. By integrating high-resolution topographic data with temporal lake dynamics, it automatically calculates a Potential Risk Score Index (PRSI) and classifies hazard zones.
+            </p>
+        </section>
+
+        <hr class="my-12 border-gray-300">
+        <section id="basis" class="mb-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Scientific Basis & AHP Scoring</h2>
+            <div class="max-w-4xl mx-auto space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-emerald-500">
+                    <h3 class="text-xl font-bold text-gray-800 flex items-center">
+                        <span class="mr-3 text-3xl">📊</span> Potential Risk Score Index (PRSI)
+                    </h3>
+                    <p class="mt-4 text-gray-600">
+                        The final susceptibility of each glacial lake is computed via a weighted linear combination of five geomorphological and temporal parameters. Each parameter (\(V\)) is assigned a standardized risk score (0.25, 0.50, or 1.00) based on critical thresholds.
+                    </p>
+                    
+                    <div class="math-equation">
+                        <div class="math-label">AHP Weighted Sum Equation</div>
+                        <div class="text-center text-xl">
+                            \[PRSI = (V_{Ava} \times 0.416) + (V_{Wat} \times 0.262) + (V_{Dist} \times 0.161) + (V_{Chg} \times 0.099) + (V_{Area} \times 0.062)\]
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-md mt-4">
+                        <h4 class="font-semibold text-gray-800 mb-2">Parameter Breakdown:</h4>
+                        <ul class="space-y-2 text-gray-700" style="font-size: 15px;">
+                            <li>\(V_{Ava}\) = Avalanche Area / Steep Slopes > 30° (Weight: 41.6%)</li>
+                            <li>\(V_{Wat}\) = Local Watershed / Reach Area (Weight: 26.2%)</li>
+                            <li>\(V_{Dist}\) = Distance to Active Glacier (Weight: 16.1%)</li>
+                            <li>\(V_{Chg}\) = Lake Area Expansion Rate (Weight: 9.9%)</li>
+                            <li>\(V_{Area}\) = Total Lake Area (Weight: 6.2%)</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mt-4">
+                        <h4 class="font-semibold text-gray-800 mb-2">🔬 Topographic Extraction</h4>
+                        <p class="text-gray-700 text-sm">
+                            The script uses a Sobel filter applied to a high-resolution DEM to derive surface slope. 2000-meter buffer zones around each lake serve as proxies for the local watershed. Pixels exceeding 30 degrees within this buffer are classified as potential mass-movement (avalanche) zones, representing the highest weighted trigger mechanism for GLOFs.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="my-12 border-gray-300">
+        <section id="factors" class="mb-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-2 text-gray-800">Core Input Datasets</h2>
+            <p class="text-center text-gray-600 mb-12">Click on a factor to see its role in the geoprocessing workflow.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+                <div class="md:col-span-4">
+                    <div id="factor-cards-container" class="grid grid-cols-2 md:grid-cols-2 gap-4">
+                    </div>
+                </div>
+                <div id="factor-details-container" class="md:col-span-8 bg-white p-8 rounded-lg shadow-md min-h-[400px]">
+                </div>
+            </div>
+        </section>
+
+        <hr class="my-12 border-gray-300">
+        <section id="workflow" class="mb-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Geoprocessing Workflow</h2>
+            <div class="max-w-4xl mx-auto space-y-2">
+                <div class="flowchart-step bg-white p-4 rounded-lg border-l-4 border-gray-200 flex items-center space-x-4">
+                    <div class="bg-emerald-100 text-emerald-700 rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl flex-shrink-0">1</div>
+                    <div>
+                        <h3 class="font-bold text-lg">Vector Alignment & Filtering</h3>
+                        <p class="text-gray-600">Loads shapefiles (historical lakes, current lakes, glaciers), projects them to the DEM's CRS, and isolates active glaciers by filtering out features smaller than 0.1 km².</p>
+                    </div>
+                </div>
+                <div class="flex justify-center h-8"><svg class="w-6 h-6 flowchart-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></div>
+                <div class="flowchart-step bg-white p-4 rounded-lg border-l-4 border-gray-200 flex items-center space-x-4">
+                    <div class="bg-emerald-100 text-emerald-700 rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl flex-shrink-0">2</div>
+                    <div>
+                        <h3 class="font-bold text-lg">Spatial Join & Dynamics</h3>
+                        <p class="text-gray-600">Performs spatial joins between temporal lake layers to compute the expansion percentage. Measures the nearest distance from each lake to an active glacier.</p>
+                    </div>
+                </div>
+                <div class="flex justify-center h-8"><svg class="w-6 h-6 flowchart-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></div>
+                <div class="flowchart-step bg-white p-4 rounded-lg border-l-4 border-gray-200 flex items-center space-x-4">
+                    <div class="bg-emerald-100 text-emerald-700 rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl flex-shrink-0">3</div>
+                    <div>
+                        <h3 class="font-bold text-lg">Topographic Extraction</h3>
+                        <p class="text-gray-600">Masks the DEM using 2000m buffers around each lake. Calculates terrain slope via Sobel arrays to quantify total watershed area and avalanche-prone steep slopes (>30°).</p>
+                    </div>
+                </div>
+                <div class="flex justify-center h-8"><svg class="w-6 h-6 flowchart-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></div>
+                <div class="flowchart-step bg-white p-4 rounded-lg border-l-4 border-emerald-500 flex items-center space-x-4">
+                    <div class="bg-emerald-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl flex-shrink-0">✓</div>
+                    <div>
+                        <h3 class="font-bold text-lg">AHP Matrix & Visualization</h3>
+                        <p class="text-gray-600">Assigns threshold scores to all parameters, calculates the final PRSI, bins lakes into 5 Hazard Classes (Very Low to Very High), and generates maps, charts, and final shapefiles.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="my-12 border-gray-300">
+        <section id="demo" class="mb-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-8 text-gray-800">Console Demo (Simulated Run)</h2>
+            <p class="text-center text-gray-600 mb-6 max-w-2xl mx-auto">A simulation of the <span class="font-mono">GLOF_AHP.py</span> script execution, demonstrating the terminal output and visualization pipeline.</p>
+            
+            <div class="max-w-4xl mx-auto bg-gray-800 rounded-lg p-6 shadow-xl">
+                <div class="text-gray-300 font-mono text-sm mb-4">$&gt; python GLOF_AHP.py</div>
+                <pre class="console-output text-green-300">
+Loading Shapefiles...
+> 1990.shp
+> 2025GEE.shp
+> rgi_intersect.shp
+Calculating Area Changes and Glacier Distances...
+> Target CRS matching DEM applied.
+> Isolating active glaciers (Area >= 0.1 km2)...
+> Spatial join complete. Baseline area changes calculated.
+Processing DEM for Slope and Topographic Potential...
+> Applying Sobel filters for slope generation...
+> Masking 2000m buffers for watershed extraction...
+Applying AHP Weights...
+> Calculating PRSI values...
+> Classifying into: Very Low, Low, Moderate, High, Very High.
+> Saving vector output to 'GLOF_Outputs/GLOF_Hazard_2025.shp'
+Generating Maps and Graphs...
+> Plotting GLOF_Susceptibility_Map.png
+> Plotting Hazard_Distribution_Chart.png
+> Plotting Lake_Dynamics_Scatter.png
+<span class="text-blue-300">Process Complete! All outputs saved to: C:\Users\anura\Downloads\Data_UIB\GLOF_Outputs</span>
+                </pre>
+            </div>
+        </section>
+
+        <hr class="my-12 border-gray-300">
+        <section id="about" class="scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-8 text-gray-800">About the Author</h2>
+            <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 flex flex-col md:flex-row items-center gap-8 border-t-4 border-emerald-500">
+                <div class="flex-shrink-0">
+                    <div class="w-40 h-40 bg-emerald-100 rounded-full flex items-center justify-center">
+                        <svg class="w-24 h-24 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>
+                    </div>
+                </div>
+                <div class="text-center md:text-left">
+                    <h3 class="text-3xl font-bold text-gray-800">Anurag Sharma</h3>
+                    <p class="text-emerald-700 font-semibold mt-1">Research Scholar</p>
+                    <p class="mt-4 text-gray-600 max-w-lg">
+                        Anurag Sharma is a Research Scholar specializing in open-source Geographic Information Systems (GIS), Remote Sensing, and Cryosphere Science. This project automates complex spatial Multi-Criteria Decision Analysis (MCDA) to assess Glacial Lake Outburst Flood (GLOF) risks in high-mountain environments.
+                    </p>
+                    <div class="mt-6 flex flex-wrap gap-6 justify-center md:justify-start items-center text-gray-700">
+                        <a href="https://github.com/anurag-tm" target="_blank" rel="noopener noreferrer" title="GitHub" class="hover:text-emerald-600 transition duration-150">
+                            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.418 2.867 8.165 6.839 9.48.5.092.682-.217.682-.483 0-.237-.008-.884-.013-1.745-2.782.605-3.369-1.343-3.369-1.343-.455-1.15-.111-1.465.1-.96-.111-.703.44-.73.68-.73 1.018 0 1.57.525 1.57 1.15.22.44.823.385 1.02.22.112-.857.398-1.465.717-1.804-2.675-.305-5.467-1.334-5.467-5.931 0-1.31.469-2.38 1.236-3.22-.124-.305-.536-1.524.118-3.176 0 0 1.008-.32 3.301 1.23.957-.266 1.983-.4 3.003-.404 1.02.004 2.046.138 3.003.404 2.293-1.55 3.3-1.23 3.3-1.23.655 1.652.243 2.871.118 3.176.77.84 1.235 1.911 1.235 3.22 0 4.609-2.802 5.624-5.475 5.92.42.36.816 1.093.816 2.203 0 1.597-.015 2.887-.015 3.274 0 .268.18.58.688.482C21.013 20.185 24 16.437 24 12.017 24 6.484 19.522 2 14 2h-2Z" clip-rule="evenodd" /></svg>
+                        </a>
+                        <a href="mailto:anurag303sharma@jammuuniversity.ac.in" title="Email" class="hover:text-emerald-600 transition duration-150">
+                            <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"></path></svg>
+                        </a>
+                        <a href="https://x.com/anurag0_07" target="_blank" rel="noopener noreferrer" title="X (Twitter)" class="hover:text-emerald-600 transition duration-150">
+                            <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865l8.875 11.633Z"/></svg>
+                        </a>
+                        <a href="https://linkedin.com/in/anurag-sharma-3b0897375" target="_blank" rel="noopener noreferrer" title="LinkedIn" class="hover:text-emerald-600 transition duration-150">
+                            <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white mt-20 border-t">
+        <div class="container mx-auto px-6 py-6 text-center text-gray-500">
+            <p>Interactive Report generated for the GLOF Susceptibility Model.</p>
+            <p class="text-sm mt-2">&copy; 2026 Anurag Sharma. All Rights Reserved pending publication.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const factorData = {
+                dem: {
+                    title: 'Digital Elevation Model (DEM)',
+                    description: 'High-resolution continuous raster data (e.g., Copernicus 30m) depicting terrain topography.',
+                    role: 'Used to calculate structural terrain variables. The tool applies array-based Sobel filtering to derive local slopes and calculate localized watershed areas acting as proxies for basin inflows.'
+                },
+                lakes_historic: {
+                    title: 'Historical Lakes (1990)',
+                    description: 'Vector shapefile establishing the baseline extent of glacial lakes in the study area.',
+                    role: 'Acts as the foundation for temporal dynamics. It is intersected with current lakes to determine the percentage of area expansion, flagging rapidly growing lakes for higher risk.'
+                },
+                lakes_current: {
+                    title: 'Current Lakes (2025)',
+                    description: 'Vector shapefile showing the most up-to-date footprint of local glacial lakes.',
+                    role: 'Defines the geometry for buffering (2000m) to extract local topographic indices and serves as the primary evaluation feature for the final AHP Hazard Score.'
+                },
+                glaciers: {
+                    title: 'Regional Glaciers',
+                    description: 'Vector shapefile representing active ice bodies across the study region.',
+                    role: 'The script automatically filters this layer (removing features < 0.1 km²) to eliminate seasonal snow fields, then calculates the direct proximity of each lake to the nearest ice body.'
+                }
+            };
+
+            const factorCardsContainer = document.getElementById('factor-cards-container');
+            const factorDetailsContainer = document.getElementById('factor-details-container');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('main > section');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            const displayFactorDetails = (factorKey) => {
+                const data = factorData[factorKey];
+                if (!data) return;
+
+                factorDetailsContainer.innerHTML = `
+                    <h3 class="text-2xl font-bold mb-4 text-gray-800">${data.title}</h3>
+                    <p class="text-gray-600 mb-4">${data.description}</p>
+                    <div class="p-4 bg-emerald-50 rounded-lg border-l-4 border-emerald-400">
+                        <h4 class="font-semibold text-gray-700">Role in the Model:</h4>
+                        <p class="text-gray-600 mt-1">${data.role}</p>
+                    </div>
+                `;
+                
+                MathJax.typesetPromise([factorDetailsContainer]).catch((err) => console.log(err));
+                
+                document.querySelectorAll('.factor-card').forEach(card => card.classList.remove('active'));
+                document.querySelector(`.factor-card[data-factor="${factorKey}"]`).classList.add('active');
+            };
+            
+            const createFactorCards = () => {
+                Object.keys(factorData).forEach(key => {
+                    const card = document.createElement('div');
+                    card.className = 'factor-card bg-white p-4 rounded-lg border-2 border-transparent text-center h-24 flex items-center justify-center shadow-sm hover:shadow-lg';
+                    card.dataset.factor = key;
+                    card.innerHTML = `<h4 class="font-semibold">${factorData[key].title}</h4>`;
+                    card.addEventListener('click', () => displayFactorDetails(key));
+                    factorCardsContainer.appendChild(card);
+                });
+            };
+
+            const handleScroll = () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (window.pageYOffset >= sectionTop - 80) { 
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    const linkHref = link.getAttribute('href');
+                    if (linkHref && linkHref.includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            };
+
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            mobileMenu.addEventListener('click', (e) => {
+                if(e.target.tagName === 'A') {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+
+            window.addEventListener('scroll', handleScroll);
+
+            createFactorCards();
+            displayFactorDetails('dem'); 
+            handleScroll();
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise().catch((err) => console.log('MathJax error:', err));
+            }
+        });
+    </script>
+</body>
+</html>
